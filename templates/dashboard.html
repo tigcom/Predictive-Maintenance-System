@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Predictive Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6', success:'#22C55E', warning:'#EAB308', danger:'#EF4444' },
+    fontFamily: { sans:['Inter','sans-serif'] }
+  }}
+}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto pb-12">
+  <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-muted uppercase tracking-wide mb-1">Machines</p>
+      <p class="text-2xl font-bold">{{ machines }}</p>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-muted uppercase tracking-wide mb-1">Maintenance</p>
+      <p class="text-2xl font-bold">{{ maintenance }}</p>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-danger uppercase tracking-wide mb-1">Critical</p>
+      <p class="text-2xl font-bold text-danger">{{ critical }}</p>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-muted uppercase tracking-wide mb-1">Anomalies</p>
+      <p class="text-2xl font-bold">{{ anomalies or 0 }}</p>
+    </div>
+  </div>
+
+  <!-- Sensor Averages -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-muted mb-1">Avg Temperature</p>
+      <p class="text-xl font-semibold">{{ "%.1f"|format(avg_temp or 0) }}<span class="text-sm text-muted ml-1">°C</span></p>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-muted mb-1">Avg Humidity</p>
+      <p class="text-xl font-semibold">{{ "%.1f"|format(avg_humidity or 50) }}<span class="text-sm text-muted ml-1">%</span></p>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p class="text-xs text-muted mb-1">Avg Energy</p>
+      <p class="text-xl font-semibold">{{ "%.1f"|format(avg_energy or 2) }}<span class="text-sm text-muted ml-1">kWh</span></p>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <h3 class="text-sm font-medium mb-4">Machine Health Status</h3>
+      <canvas id="statusChart" height="200"></canvas>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <h3 class="text-sm font-medium mb-4">Maintenance Cost</h3>
+      <canvas id="costChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <h3 class="text-sm font-medium mb-4">Maintenance Trend</h3>
+      <canvas id="trendChart" height="200"></canvas>
+    </div>
+    <div class="bg-card rounded-xl border border-border shadow-sm p-5">
+      <h3 class="text-sm font-medium mb-4">Risk Distribution</h3>
+      <canvas id="riskChart" height="200"></canvas>
+    </div>
+  </div>
+</main>
+
+<script>
+const colors = { success:'#22C55E', warning:'#EAB308', danger:'#EF4444', accent:'#3B82F6', muted:'#94A3B8' };
+
+new Chart(document.getElementById("statusChart"), {
+  type:"doughnut",
+  data:{ labels:["Good","Warning","Critical"], datasets:[{ data:[{{good}},{{warning}},{{critical}}], backgroundColor:[colors.success, colors.warning, colors.danger] }] },
+  options:{ plugins:{ legend:{ position:'bottom' } } }
+});
+
+new Chart(document.getElementById("costChart"), {
+  type:"bar",
+  data:{ labels:{{ months|tojson }}, datasets:[{ label:"Cost", data:{{ costs|tojson }}, backgroundColor:colors.accent, borderRadius:6 }] },
+  options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+});
+
+new Chart(document.getElementById("trendChart"), {
+  type:"line",
+  data:{ labels:{{ months|tojson }}, datasets:[{ label:"Maintenance", data:{{ maintenance_trend|tojson }}, borderColor:colors.accent, tension:0.3, fill:false }] },
+  options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+});
+
+new Chart(document.getElementById("riskChart"), {
+  type:"bar",
+  data:{ labels:["Good","Warning","Critical"], datasets:[{ label:"Machines", data:[{{good}},{{warning}},{{critical}}], backgroundColor:[colors.success, colors.warning, colors.danger], borderRadius:6 }] },
+  options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+});
+</script>
+</body>
+</html>

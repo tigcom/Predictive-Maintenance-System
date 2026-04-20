@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prediction Results — Predictive Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6', success:'#22C55E', warning:'#EAB308', danger:'#EF4444' },
+  fontFamily: { sans:['Inter','sans-serif'] }
+}}}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-6xl mx-auto pb-12">
+  <div class="flex items-center gap-3 mb-1">
+    <h1 class="text-2xl font-bold">Prediction Results</h1>
+    <span class="bg-green-50 text-success text-xs font-medium px-2.5 py-1 rounded-lg border border-green-200">Saved to DB</span>
+  </div>
+  <p class="text-muted text-sm mb-6">File: <span class="font-mono">{{ filename }}</span> — {{ predictions|length }} machines</p>
+
+  <!-- Summary -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+      <p class="text-2xl font-bold text-success">{{ predictions|selectattr('status','equalto','Good')|list|length }}</p>
+      <p class="text-xs text-muted">Good</p>
+    </div>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+      <p class="text-2xl font-bold text-warning">{{ predictions|selectattr('status','equalto','Warning')|list|length }}</p>
+      <p class="text-xs text-muted">Warning</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+      <p class="text-2xl font-bold text-danger">{{ predictions|selectattr('status','equalto','Critical')|list|length }}</p>
+      <p class="text-xs text-muted">Critical</p>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-card rounded-xl border border-border shadow-sm overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border bg-slate-50">
+          <th class="text-left py-3 px-4 text-muted font-medium">Machine</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">RUL (h)</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Risk</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Status</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Temp</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Vibration</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Humidity</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Pressure</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Energy</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+          <td class="py-3 px-4 font-medium">{{ p.machine_id }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ p.rul }}</td>
+          <td class="py-3 px-4 text-center">
+            {% if p.risk >= 70 %}
+            <span class="text-xs font-mono font-medium text-red-600">{{ p.risk }}%</span>
+            {% elif p.risk >= 40 %}
+            <span class="text-xs font-mono font-medium text-amber-600">{{ p.risk }}%</span>
+            {% else %}
+            <span class="text-xs font-mono font-medium text-green-600">{{ p.risk }}%</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-4 text-center">
+            {% if p.status == "Good" %}
+            <span class="bg-green-50 text-success text-xs px-2 py-0.5 rounded border border-green-200">Good</span>
+            {% elif p.status == "Warning" %}
+            <span class="bg-amber-50 text-warning text-xs px-2 py-0.5 rounded border border-amber-200">Warning</span>
+            {% else %}
+            <span class="bg-red-50 text-danger text-xs px-2 py-0.5 rounded border border-red-200">Critical</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(p.temperature) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.2f"|format(p.vibration) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(p.humidity) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(p.pressure) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.2f"|format(p.energy_consumption) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex gap-3 mt-6">
+    <a href="/upload_predict" class="border border-border hover:bg-slate-50 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Upload Another</a>
+    <a href="/machines" class="bg-accent hover:bg-accent/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer shadow-sm">View Machines</a>
+    <a href="/" class="border border-border hover:bg-slate-50 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Dashboard</a>
+  </div>
+</main>
+</body>
+</html>

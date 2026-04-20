@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machines — Predictive Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6', success:'#22C55E', warning:'#EAB308', danger:'#EF4444' },
+  fontFamily: { sans:['Inter','sans-serif'] }
+}}}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto pb-12">
+  <h1 class="text-2xl font-bold mb-6">Machines</h1>
+
+  <!-- Add Machine -->
+  <details class="bg-card rounded-xl border border-border shadow-sm mb-6">
+    <summary class="px-6 py-4 cursor-pointer font-medium text-sm hover:bg-slate-50 rounded-xl transition-colors">Add Machine</summary>
+    <form method="POST" action="/add_machine" class="px-6 pb-6 pt-2">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Date</label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Date" type="date" required>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Temperature <span class="text-muted/60">(°C)</span></label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Temperature" placeholder="vd: 65.0" required>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Vibration <span class="text-muted/60">(mm/s)</span></label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Vibration" placeholder="vd: 28.5" required>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Pressure <span class="text-muted/60">(bar)</span></label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Pressure" placeholder="vd: 3.5" required>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Humidity <span class="text-muted/60">(%)</span></label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Humidity" placeholder="vd: 45.0" value="50.0">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Energy <span class="text-muted/60">(kWh)</span></label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Energy_consumption" placeholder="vd: 2.0" value="2.0">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Machine Status</label>
+          <select class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface cursor-pointer" name="Machine_status">
+            <option value="1">Running</option><option value="0">Stopped</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Anomaly Flag</label>
+          <select class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface cursor-pointer" name="Anomaly_flag">
+            <option value="0">Normal</option><option value="1">Anomaly</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Downtime Risk <span class="text-muted/60">(0–1)</span></label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Downtime_risk" placeholder="vd: 0.0" value="0.0">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Maintenance Required</label>
+          <select class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface cursor-pointer" name="Maintenance_required">
+            <option value="0">No</option><option value="1">Yes</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Failure Type</label>
+          <select class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface cursor-pointer" name="Failure_type">
+            <option value="Normal">Normal</option><option value="Wear">Wear</option><option value="Overheat">Overheat</option><option value="Electrical">Electrical</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Notes</label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Maintenance_History" placeholder="Ghi chú...">
+        </div>
+      </div>
+      <button class="bg-accent hover:bg-accent/90 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors cursor-pointer">Add Machine</button>
+    </form>
+  </details>
+
+  <!-- Toolbar: Search + Filter + Sort -->
+  <div class="flex flex-wrap gap-3 mb-4 items-center">
+    <input id="searchInput" class="border border-border rounded-lg px-4 py-2 text-sm bg-card shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/30 w-40" placeholder="Machine ID" type="number">
+    <select id="filterHealth" class="border border-border rounded-lg px-3 py-2 text-sm bg-card shadow-sm cursor-pointer">
+      <option value="">All Health</option>
+      <option value="Good">Good</option>
+      <option value="Warning">Warning</option>
+      <option value="Critical">Critical</option>
+    </select>
+    <select id="sortField" class="border border-border rounded-lg px-3 py-2 text-sm bg-card shadow-sm cursor-pointer">
+      <option value="">Sort by...</option>
+      <option value="0">ID</option>
+      <option value="2">Temperature</option>
+      <option value="3">Vibration</option>
+      <option value="4">Pressure</option>
+      <option value="7">RUL</option>
+      <option value="8">Risk</option>
+    </select>
+    <select id="sortDir" class="border border-border rounded-lg px-3 py-2 text-sm bg-card shadow-sm cursor-pointer">
+      <option value="">No sort</option>
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+    <select id="perPage" class="border border-border rounded-lg px-3 py-2 text-sm bg-card shadow-sm cursor-pointer">
+      <option value="20">20 / page</option>
+      <option value="50">50 / page</option>
+      <option value="100">100 / page</option>
+      <option value="99999">All</option>
+    </select>
+    <span id="countLabel" class="text-xs text-muted ml-auto"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-card rounded-xl border border-border shadow-sm overflow-x-auto">
+    <table class="w-full text-sm" id="machineTableWrap">
+      <thead>
+        <tr class="border-b border-border bg-slate-50">
+          <th class="text-left py-3 px-4 text-muted font-medium">ID</th>
+          <th class="text-left py-3 px-4 text-muted font-medium">Date</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Temp</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Vibration</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Pressure</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Humidity</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Energy</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">RUL</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Risk</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Health</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="machineTable">
+        {% for m in machines %}
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors" data-health="{{ m.Status }}">
+          <td class="py-3 px-4 font-medium">{{ m.Machine_ID }}</td>
+          <td class="py-3 px-4 text-muted">{{ m.Date }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(m.Temperature or 0) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.2f"|format(m.Vibration or 0) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(m.Pressure or 0) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(m.Humidity or 50) }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ "%.1f"|format(m.Energy_consumption or 2) }}</td>
+          <td class="py-3 px-4 text-center font-mono text-sm">{{ m.RUL }}h</td>
+          <td class="py-3 px-4 text-center">
+            {% if m.FailureRisk >= 70 %}
+            <span class="text-xs font-mono font-medium text-red-600">{{ m.FailureRisk }}%</span>
+            {% elif m.FailureRisk >= 40 %}
+            <span class="text-xs font-mono font-medium text-amber-600">{{ m.FailureRisk }}%</span>
+            {% else %}
+            <span class="text-xs font-mono font-medium text-green-600">{{ m.FailureRisk }}%</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-4 text-center">
+            {% if m.Status == "Good" %}
+            <span class="bg-green-50 text-success text-xs px-2 py-0.5 rounded border border-green-200">Good</span>
+            {% elif m.Status == "Warning" %}
+            <span class="bg-amber-50 text-warning text-xs px-2 py-0.5 rounded border border-amber-200">Warning</span>
+            {% else %}
+            <span class="bg-red-50 text-danger text-xs px-2 py-0.5 rounded border border-red-200">Critical</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-4 text-center space-x-1">
+            <a href="/predict/{{ m.Machine_ID }}" class="text-accent hover:underline text-xs cursor-pointer">Predict</a>
+            <a href="/delete_machine/{{ m.Machine_ID }}" class="text-danger hover:underline text-xs cursor-pointer">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex items-center justify-between mt-4">
+    <button id="prevBtn" class="border border-border hover:bg-slate-50 px-4 py-2 rounded-lg text-sm cursor-pointer disabled:opacity-40 disabled:cursor-default transition-colors">Previous</button>
+    <span id="pageLabel" class="text-sm text-muted"></span>
+    <button id="nextBtn" class="border border-border hover:bg-slate-50 px-4 py-2 rounded-lg text-sm cursor-pointer disabled:opacity-40 disabled:cursor-default transition-colors">Next</button>
+  </div>
+</main>
+
+<script>
+(function(){
+  const tbody = document.getElementById('machineTable');
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+  const searchEl = document.getElementById('searchInput');
+  const filterEl = document.getElementById('filterHealth');
+  const sortFieldEl = document.getElementById('sortField');
+  const sortDirEl = document.getElementById('sortDir');
+  const perPageEl = document.getElementById('perPage');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageLabel = document.getElementById('pageLabel');
+  const countLabel = document.getElementById('countLabel');
+
+  let filtered = [];
+  let page = 1;
+
+  function getNum(row, col) {
+    return parseFloat(row.children[col].textContent.replace(/[^0-9.\-]/g, '')) || 0;
+  }
+
+  function update() {
+    const q = searchEl.value.trim();
+    const h = filterEl.value;
+    filtered = allRows.filter(r => {
+      if (q && r.children[0].textContent.trim() !== q) return false;
+      if (h && r.dataset.health !== h) return false;
+      return true;
+    });
+
+    const col = sortFieldEl.value;
+    const dir = sortDirEl.value;
+    if (col && dir) {
+      const c = parseInt(col);
+      filtered.sort((a, b) => dir === 'asc' ? getNum(a,c) - getNum(b,c) : getNum(b,c) - getNum(a,c));
+    }
+
+    // Re-append rows to DOM in sorted order
+    allRows.forEach(r => r.style.display = 'none');
+    filtered.forEach(r => tbody.appendChild(r));
+
+    // Paginate
+    const pp = parseInt(perPageEl.value);
+    const total = filtered.length;
+    const pages = Math.max(1, Math.ceil(total / pp));
+    if (page > pages) page = pages;
+    const start = (page - 1) * pp;
+
+    filtered.forEach((r, i) => r.style.display = (i >= start && i < start + pp) ? '' : 'none');
+
+    countLabel.textContent = total + ' machines';
+    pageLabel.textContent = 'Page ' + page + ' / ' + pages;
+    prevBtn.disabled = page <= 1;
+    nextBtn.disabled = page >= pages;
+  }
+
+  function reset() { page = 1; update(); }
+
+  searchEl.addEventListener('input', reset);
+  filterEl.addEventListener('change', reset);
+  sortFieldEl.addEventListener('change', reset);
+  sortDirEl.addEventListener('change', reset);
+  perPageEl.addEventListener('change', reset);
+  prevBtn.addEventListener('click', () => { page--; update(); });
+  nextBtn.addEventListener('click', () => { page++; update(); });
+
+  update();
+})();
+</script>
+</body>
+</html>

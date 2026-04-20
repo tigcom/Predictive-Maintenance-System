@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Results — Predictive Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        surface: '#F8FAFC',
+        card: '#FFFFFF',
+        border: '#E2E8F0',
+        text: '#1E293B',
+        muted: '#64748B',
+        accent: '#3B82F6',
+        cta: '#F97316',
+        success: '#22C55E',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<!-- Navbar -->
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto pb-12">
+
+  <div class="flex items-center gap-3 mb-1">
+    <h1 class="text-2xl font-bold">Training Complete</h1>
+    <span class="bg-green-50 text-success text-xs font-medium px-2.5 py-1 rounded-lg border border-green-200">Success</span>
+  </div>
+  <p class="text-muted text-sm mb-8">Dataset: <span class="font-mono text-text">{{ filename }}</span> — {{ training_date }}</p>
+
+  <!-- Best Model -->
+  <div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <h2 class="font-semibold">Best Model: <span class="text-success">{{ best_name }}</span></h2>
+    </div>
+    <p class="text-sm text-muted">Model này đã được lưu và đang active. Tất cả predictions trên web sẽ sử dụng model này.</p>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="bg-card rounded-2xl border border-border shadow-sm p-6 mb-8">
+    <h2 class="font-semibold mb-4">So sánh các Model</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="text-left py-3 px-4 text-muted font-medium">Model</th>
+            <th class="text-right py-3 px-4 text-muted font-medium">R² Score</th>
+            <th class="text-right py-3 px-4 text-muted font-medium">RMSE (h)</th>
+            <th class="text-right py-3 px-4 text-muted font-medium">MAE (h)</th>
+            <th class="text-center py-3 px-4 text-muted font-medium">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in models %}
+          <tr class="border-b border-slate-100 {% if m.is_best %}bg-accent/5{% endif %}">
+            <td class="py-3 px-4 font-medium">{{ m.name }}</td>
+            <td class="py-3 px-4 text-right font-mono text-sm">{{ m.r2 }}</td>
+            <td class="py-3 px-4 text-right font-mono text-sm">{{ m.rmse }}</td>
+            <td class="py-3 px-4 text-right font-mono text-sm">{{ m.mae }}</td>
+            <td class="py-3 px-4 text-center">
+              {% if m.is_best %}
+              <span class="bg-accent/10 text-accent text-xs px-2 py-0.5 rounded font-medium">Active</span>
+              {% else %}
+              <span class="text-muted text-xs">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Metrics Explanation -->
+  <div class="bg-card rounded-2xl border border-border shadow-sm p-6 mb-8">
+    <h2 class="font-semibold mb-4">Giải thích Metrics</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      <div class="space-y-1">
+        <h3 class="text-sm font-medium text-accent">R² Score</h3>
+        <p class="text-xs text-muted">Tỷ lệ variance được giải thích. 1.0 = hoàn hảo, 0 = không tốt hơn đoán trung bình. Càng gần 1 càng tốt.</p>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-sm font-medium text-amber-600">RMSE (Root Mean Squared Error)</h3>
+        <p class="text-xs text-muted">Sai số trung bình bình phương (giờ). Phạt nặng dự đoán sai lệch lớn. Càng thấp càng tốt.</p>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-sm font-medium text-purple-600">MAE (Mean Absolute Error)</h3>
+        <p class="text-xs text-muted">Sai số tuyệt đối trung bình (giờ). Ví dụ MAE=108 nghĩa là model sai trung bình 108 giờ. Càng thấp càng tốt.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature Importance -->
+  {% if feature_importance %}
+  <div class="bg-card rounded-2xl border border-border shadow-sm p-6 mb-8">
+    <h2 class="font-semibold mb-2">Feature Importance</h2>
+    <p class="text-xs text-muted mb-4">Mức độ ảnh hưởng của từng yếu tố đến kết quả dự đoán RUL (%). Feature có importance cao = ảnh hưởng lớn đến tuổi thọ máy.</p>
+    <div class="space-y-2">
+      {% for f in feature_importance %}
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-mono w-44 shrink-0 text-muted">{{ f.name }}</span>
+        <div class="flex-1 bg-slate-100 rounded-full h-5 overflow-hidden">
+          <div class="h-full rounded-full {% if loop.index <= 3 %}bg-accent{% elif loop.index <= 6 %}bg-blue-300{% else %}bg-slate-300{% endif %} transition-all" style="width: {{ f.importance }}%"></div>
+        </div>
+        <span class="text-xs font-mono w-14 text-right">{{ f.importance }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Dataset Info -->
+  {% if dataset_info %}
+  <div class="bg-card rounded-2xl border border-border shadow-sm p-6 mb-8">
+    <h2 class="font-semibold mb-4">Dataset & Training Info</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-surface rounded-lg p-3 border border-border">
+        <p class="text-xs text-muted">Total Rows</p>
+        <p class="text-lg font-bold font-mono">{{ dataset_info.rows | default(0) }}</p>
+      </div>
+      <div class="bg-surface rounded-lg p-3 border border-border">
+        <p class="text-xs text-muted">Columns</p>
+        <p class="text-lg font-bold font-mono">{{ dataset_info.cols | default(0) }}</p>
+      </div>
+      <div class="bg-surface rounded-lg p-3 border border-border">
+        <p class="text-xs text-muted">Train Set (80%)</p>
+        <p class="text-lg font-bold font-mono">{{ dataset_info.train_size | default(0) }}</p>
+      </div>
+      <div class="bg-surface rounded-lg p-3 border border-border">
+        <p class="text-xs text-muted">Test Set (20%)</p>
+        <p class="text-lg font-bold font-mono">{{ dataset_info.test_size | default(0) }}</p>
+      </div>
+    </div>
+    <div class="mt-4 p-3 bg-surface rounded-lg border border-border">
+      <p class="text-xs text-muted leading-relaxed">
+        Dataset được chia 80/20: 80% dùng để train model, 20% còn lại dùng để đánh giá (test). 
+        Các metrics R², RMSE, MAE ở trên được tính trên test set — dữ liệu mà model chưa từng thấy trong quá trình training.
+        Điều này đảm bảo đánh giá khách quan, tránh overfitting.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div class="flex gap-3">
+    <a href="/" class="border border-border hover:bg-slate-50 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/upload_predict" class="bg-accent hover:bg-accent/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer shadow-sm">Upload & Predict</a>
+    <a href="/train" class="border border-border hover:bg-slate-50 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer">Train Again</a>
+  </div>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ filename }} — Dataset</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6' },
+  fontFamily: { sans:['Inter','sans-serif'] }
+}}}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto pb-12">
+  <div class="flex items-center gap-3 mb-6">
+    <h1 class="text-2xl font-bold">{{ filename }}</h1>
+    <span class="text-xs text-muted bg-slate-100 px-2 py-1 rounded">First 100 rows</span>
+  </div>
+
+  <div class="bg-card rounded-xl border border-border shadow-sm overflow-x-auto">
+    <table class="w-full text-xs font-mono">
+      <thead>
+        <tr class="border-b border-border bg-slate-50">
+          {% for col in columns %}
+          <th class="text-left py-2 px-3 text-muted font-medium whitespace-nowrap">{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data %}
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          {% for col in columns %}
+          <td class="py-2 px-3 whitespace-nowrap">{{ row[col] }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4">
+    <a href="/datasets" class="border border-border hover:bg-slate-50 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer inline-block">Back to Datasets</a>
+  </div>
+</main>
+</body>
+</html>

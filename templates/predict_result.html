@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prediction — Machine {{ machine.Machine_ID }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6', success:'#22C55E', warning:'#EAB308', danger:'#EF4444' },
+  fontFamily: { sans:['Inter','sans-serif'] }
+}}}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-2xl mx-auto pb-12">
+  <h1 class="text-2xl font-bold mb-6">Machine {{ machine.Machine_ID }} — Prediction</h1>
+
+  <!-- Status Card -->
+  {% if color == 'success' %}
+  <div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-6">
+  {% elif color == 'warning' %}
+  <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6">
+  {% else %}
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6">
+  {% endif %}
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm font-medium text-muted">Status</span>
+      {% if color == 'success' %}
+      <span class="bg-green-100 text-success text-sm px-3 py-1 rounded-lg font-medium border border-green-200">{{ status }}</span>
+      {% elif color == 'warning' %}
+      <span class="bg-amber-100 text-warning text-sm px-3 py-1 rounded-lg font-medium border border-amber-200">{{ status }}</span>
+      {% else %}
+      <span class="bg-red-100 text-danger text-sm px-3 py-1 rounded-lg font-medium border border-red-200">{{ status }}</span>
+      {% endif %}
+    </div>
+    <p class="text-4xl font-bold mb-1">{{ rul }} <span class="text-lg font-normal text-muted">hours</span></p>
+    <p class="text-sm text-muted mb-3">{{ message }}</p>
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-muted">Failure Risk:</span>
+      {% if risk >= 70 %}
+      <span class="text-lg font-bold text-red-600">{{ risk }}%</span>
+      {% elif risk >= 40 %}
+      <span class="text-lg font-bold text-amber-600">{{ risk }}%</span>
+      {% else %}
+      <span class="text-lg font-bold text-green-600">{{ risk }}%</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sensor Data -->
+  <div class="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6">
+    <h2 class="font-semibold mb-4">Sensor Data</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div><p class="text-xs text-muted">Temperature</p><p class="font-mono font-medium">{{ machine.Temperature }} °C</p></div>
+      <div><p class="text-xs text-muted">Vibration</p><p class="font-mono font-medium">{{ machine.Vibration }}</p></div>
+      <div><p class="text-xs text-muted">Pressure</p><p class="font-mono font-medium">{{ machine.Pressure }}</p></div>
+      <div><p class="text-xs text-muted">Humidity</p><p class="font-mono font-medium">{{ machine.Humidity or 50.0 }} %</p></div>
+      <div><p class="text-xs text-muted">Energy</p><p class="font-mono font-medium">{{ machine.Energy_consumption or 2.0 }} kWh</p></div>
+      <div><p class="text-xs text-muted">Failure Type</p><p class="font-mono font-medium">{{ machine.Failure_type or 'Normal' }}</p></div>
+    </div>
+  </div>
+
+  <a href="/machines" class="border border-border hover:bg-slate-50 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer inline-block">Back to Machines</a>
+</main>
+</body>
+</html>

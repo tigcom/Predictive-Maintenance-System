@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datasets — Predictive Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6', danger:'#EF4444' },
+  fontFamily: { sans:['Inter','sans-serif'] }
+}}}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto pb-12">
+  <h1 class="text-2xl font-bold mb-6">Datasets</h1>
+
+  <div class="bg-card rounded-xl border border-border shadow-sm overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border bg-slate-50">
+          <th class="text-left py-3 px-4 text-muted font-medium">File Name</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Size (KB)</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in files %}
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+          <td class="py-3 px-4 font-medium font-mono text-sm">{{ f.name }}</td>
+          <td class="py-3 px-4 text-right text-muted">{{ f.size }}</td>
+          <td class="py-3 px-4 text-center space-x-2">
+            <a href="/view_dataset/{{ f.name }}" class="text-accent hover:underline text-xs cursor-pointer">View</a>
+            <a href="/download_dataset/{{ f.name }}" class="text-muted hover:text-text hover:underline text-xs cursor-pointer">Download</a>
+            <a href="/delete_dataset/{{ f.name }}" class="text-danger hover:underline text-xs cursor-pointer">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4">
+    <a href="/train" class="bg-accent hover:bg-accent/90 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors cursor-pointer inline-block shadow-sm">Train Model</a>
+  </div>
+</main>
+</body>
+</html>

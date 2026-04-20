@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance — Predictive Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface:'#F8FAFC', card:'#FFFFFF', border:'#E2E8F0', text:'#1E293B', muted:'#64748B', accent:'#3B82F6', danger:'#EF4444' },
+  fontFamily: { sans:['Inter','sans-serif'] }
+}}}
+</script>
+</head>
+<body class="bg-surface text-text font-sans min-h-screen">
+
+<!-- Toast -->
+<div id="toast" class="fixed top-20 right-6 z-50 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2.5 rounded-lg shadow-md transition-all duration-300 opacity-0 translate-y-2 pointer-events-none">
+  Saved
+</div>
+
+<nav class="fixed top-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-md rounded-2xl border border-border shadow-sm px-6 py-3 flex items-center justify-between">
+  <span class="font-bold text-lg tracking-tight">Predictive Maintenance System</span>
+  <div class="flex gap-1">
+    <a href="/" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Dashboard</a>
+    <a href="/machines" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Machines</a>
+    <a href="/maintenance" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/10 text-accent cursor-pointer">Maintenance</a>
+    <a href="/train" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Train AI</a>
+    <a href="/datasets" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Datasets</a>
+    <a href="/upload_predict" class="px-3 py-1.5 rounded-lg text-sm text-muted hover:text-text hover:bg-slate-100 transition-colors duration-200 cursor-pointer">Predict</a>
+  </div>
+</nav>
+
+<main class="pt-24 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto pb-12">
+  <h1 class="text-2xl font-bold mb-6">Maintenance Schedule</h1>
+
+  <!-- Add Form -->
+  <details class="bg-card rounded-xl border border-border shadow-sm mb-6">
+    <summary class="px-6 py-4 cursor-pointer font-medium text-sm hover:bg-slate-50 rounded-xl transition-colors">Add Record</summary>
+    <form method="POST" action="/add_maintenance" class="px-6 pb-6 pt-2">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Machine</label>
+          <select class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface cursor-pointer" name="Machine_ID" required>
+            <option value="">Select</option>
+            {% for m in machines %}<option value="{{ m.Machine_ID }}">Machine {{ m.Machine_ID }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Date</label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" type="date" name="Maintenance_Date" required>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Deadline</label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" type="date" name="Deadline">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Status</label>
+          <select class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface cursor-pointer" name="Status">
+            <option value="Scheduled">Scheduled</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Technician</label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Technician" placeholder="Tên KTV">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1">Cost</label>
+          <input type="number" step="0.01" min="0" class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Cost" placeholder="0.00">
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-muted mb-1">Description</label>
+          <input class="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface" name="Description" placeholder="Mô tả công việc">
+        </div>
+      </div>
+      <button class="bg-accent hover:bg-accent/90 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors cursor-pointer">Add</button>
+    </form>
+  </details>
+
+  <!-- Search -->
+  <input id="searchInput" class="w-full md:w-80 border border-border rounded-lg px-4 py-2.5 text-sm bg-card shadow-sm mb-4 focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Search records...">
+
+  <!-- Table -->
+  <div class="bg-card rounded-xl border border-border shadow-sm overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border bg-slate-50">
+          <th class="text-left py-3 px-4 text-muted font-medium">ID</th>
+          <th class="text-left py-3 px-4 text-muted font-medium">Machine</th>
+          <th class="text-left py-3 px-4 text-muted font-medium">Created</th>
+          <th class="text-left py-3 px-4 text-muted font-medium">Deadline</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Status</th>
+          <th class="text-left py-3 px-4 text-muted font-medium">Description</th>
+          <th class="text-left py-3 px-4 text-muted font-medium">Technician</th>
+          <th class="text-right py-3 px-4 text-muted font-medium">Cost</th>
+          <th class="text-center py-3 px-4 text-muted font-medium">Action</th>
+        </tr>
+      </thead>
+      <tbody id="mainTable">
+        {% for r in records %}
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors" data-id="{{ r.Maintenance_ID }}">
+          <td class="py-3 px-4">{{ r.Maintenance_ID }}</td>
+          <td class="py-3 px-4 font-medium">{{ r.Machine_ID }}</td>
+          <td class="py-3 px-4 text-muted">{{ r.Maintenance_Date }}</td>
+          <td class="py-3 px-4">
+            {% if r.Deadline %}
+            <span class="font-mono text-sm">{{ r.Deadline }}</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-4 text-center">
+            {% if r.Status == 'Urgent' %}
+            <span class="bg-red-50 text-red-600 text-xs px-2 py-0.5 rounded border border-red-200 font-medium">Urgent</span>
+            {% elif r.Status == 'Scheduled' %}
+            <span class="bg-amber-50 text-amber-600 text-xs px-2 py-0.5 rounded border border-amber-200 font-medium">Scheduled</span>
+            {% elif r.Status == 'Done' %}
+            <span class="bg-green-50 text-green-600 text-xs px-2 py-0.5 rounded border border-green-200 font-medium">Done</span>
+            {% else %}
+            <span class="text-muted text-xs">{{ r.Status or '—' }}</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-4 text-muted text-xs max-w-xs truncate">{{ r.Description or '—' }}</td>
+          <td class="py-3 px-4">
+            <input type="text" value="{{ r.Technician or '' }}" data-field="Technician"
+                   class="editable w-full bg-transparent border-b border-transparent hover:border-border focus:border-accent focus:outline-none text-sm px-0 py-0.5 transition-colors" placeholder="Click to edit">
+          </td>
+          <td class="py-3 px-4 text-right">
+            <input type="number" step="0.01" min="0" value="{{ r.Cost or '' }}" data-field="Cost"
+                   class="editable w-24 bg-transparent border-b border-transparent hover:border-border focus:border-accent focus:outline-none text-sm font-mono text-right px-0 py-0.5 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="0.00">
+          </td>
+          <td class="py-3 px-4 text-center">
+            <a href="/delete_maintenance/{{ r.Maintenance_ID }}" onclick="return confirm('Delete?')" class="text-danger hover:underline text-xs cursor-pointer">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function(){
+  const f = this.value.toLowerCase();
+  document.querySelectorAll("#mainTable tr").forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(f) ? "" : "none";
+  });
+});
+
+function showToast(msg, ok) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = t.className.replace(/bg-\S+/g, '').replace(/border-\S+/g, '').replace(/text-\S+/g, '');
+  if (ok) {
+    t.classList.add('bg-green-50','border','border-green-200','text-green-700');
+  } else {
+    t.classList.add('bg-red-50','border','border-red-200','text-red-700');
+  }
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(0.5rem)';
+  }, 2000);
+}
+
+document.querySelectorAll('.editable').forEach(input => {
+  let saved = input.value;
+  input.addEventListener('focus', function() { saved = this.value; });
+  input.addEventListener('blur', function() {
+    if (this.value === saved) return;
+    const row = this.closest('tr');
+    const id = row.dataset.id;
+    const field = this.dataset.field;
+    const val = this.value;
+    const body = {};
+    body[field] = val;
+    fetch('/api/maintenance/' + id, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        saved = val;
+        showToast('Saved — ' + field + ': ' + (val || '(cleared)'), true);
+      } else {
+        showToast('Save failed', false);
+      }
+    })
+    .catch(() => showToast('Network error', false));
+  });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') this.blur();
+    if (e.key === 'Escape') { this.value = saved; this.blur(); }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+trained_models/*.pkl
+*.7z
+data/smart_data.csv
