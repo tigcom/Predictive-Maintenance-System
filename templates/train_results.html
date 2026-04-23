@@ -51,6 +51,26 @@ tailwind.config = {
   </div>
   <p class="text-muted text-sm mb-8">Dataset: <span class="font-mono text-text">{{ filename }}</span> — {{ training_date }}</p>
 
+  <!-- Recommendation: Random Forest -->
+  <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-6 mb-8">
+    <div class="flex items-start gap-3">
+      <div class="flex-shrink-0">
+        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5.802 4.2l-.094-1.404m0 0l.823-.823a.5.5 0 00-.707-.707l-.716.716m.707.707L12 15.586m4.243-4.243L12.586 12m0-1.414l1.414-1.414m0-2.828l.094-1.404"/></svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="font-semibold text-orange-900 mb-1">💡 Recommend: Random Forest Model</h3>
+        <p class="text-sm text-orange-800 mb-3">Random Forest là model tốt nhất cho Predictive Maintenance vì:</p>
+        <ul class="text-xs text-orange-700 space-y-1.5 list-inside">
+          <li>✓ <strong>Xử lý noise tốt:</strong> Dữ liệu sensor thường có nhiễu, RF trung bình hóa nhiều cây nên giảm ảnh hưởng</li>
+          <li>✓ <strong>Không cần feature scaling:</strong> Tự động chuẩn hóa, dễ triển khai hơn</li>
+          <li>✓ <strong>Feature importance:</strong> Biết sensor nào ảnh hưởng RUL nhiều nhất</li>
+          <li>✓ <strong>Cân bằng tốt:</strong> Ít bị overfitting, generalize tốt trên dữ liệu mới</li>
+          <li>✓ <strong>Tốc độ:</strong> Nhanh hơn Gradient Boosting, ít hyperparameter tuning</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <!-- Currently Active Model -->
   {% if previous_model_name and previous_model_name != 'None' %}
   <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
