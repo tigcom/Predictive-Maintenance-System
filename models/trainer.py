@@ -7,8 +7,7 @@ Usage:
 """
 import os
 import sys
-import pickle
-import warnings
+import pickleimport timeimport warnings
 from datetime import datetime
 
 import numpy as np
@@ -146,9 +145,12 @@ EXTENDED_FEATURES = SMART_FEATURES + [
 ]
 
 
-def train_smart_model(filepath: str = None):
+def train_smart_model(filepath: str = None, selected_model: str = None):
     if filepath is None:
         filepath = os.path.join(DATASET_FOLDER, 'smart_data.csv')
+    
+    if selected_model is None:
+        selected_model = 'All'
 
     print(f'Loading data from {filepath} ...')
     df = pd.read_csv(filepath)
@@ -193,8 +195,8 @@ def train_smart_model(filepath: str = None):
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
-    # Train models (tuned hyperparameters)
-    candidates = {
+    # All available models (tuned hyperparameters)
+    all_models = {
         'Linear Regression': LinearRegression(),
         'Decision Tree': DecisionTreeRegressor(
             max_depth=20, min_samples_leaf=5, random_state=42
@@ -209,24 +211,43 @@ def train_smart_model(filepath: str = None):
         ),
     }
 
+    # Select which models to train
+    if selected_model == 'All':
+        candidates = all_models
+        print(f'  Training all 4 models ...')
+    else:
+        # Map frontend names to model keys
+        model_map = {
+            'RandomForest': 'Random Forest',
+            'GradientBoosting': 'Gradient Boosting',
+            'DecisionTree': 'Decision Tree',
+            'LinearRegression': 'Linear Regression',
+        }
+        model_name = model_map.get(selected_model, 'Random Forest')
+        candidates = {model_name: all_models[model_name]}
+        print(f'  Training {model_name} ...')
+
     results = {}
     for name, model in candidates.items():
         print(f'  Training {name} ...')
+        start_time = time.time()
         model.fit(X_train_s, y_train)
         y_pred = model.predict(X_test_s)
+        training_time = time.time() - start_time
         r2 = r2_score(y_test, y_pred)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         mae = mean_absolute_error(y_test, y_pred)
-        results[name] = {'model': model, 'r2': r2, 'rmse': rmse, 'mae': mae}
-        print(f'    R²={r2:.4f}  RMSE={rmse:.1f}  MAE={mae:.1f}')
+        results[name] = {'model': model, 'r2': r2, 'rmse': rmse, 'mae': mae, 'training_time': training_time}
+        print(f'    R²={r2:.4f}  RMSE={rmse:.1f}  MAE={mae:.1f}  Time={training_time:.2f}s')
 
-    # Pick best
+    # Pick best (best among selected models)
     best_name = max(results, key=lambda k: results[k]['r2'])
     best = results[best_name]
-    print(f'\n  Best model: {best_name} (R²={best["r2"]:.4f})')
+    print(f'\n  Selected model: {best_name} (R²={best["r2"]:.4f})')
 
     # Save — use EXTENDED_FEATURES so predictor knows the full list
     os.makedirs(os.path.dirname(MODEL_FILE), exist_ok=True)
+    total_time = sum(r.get('training_time', 0) for r in results.values())
     model_info = {
         'model': best['model'],
         'model_name': best_name,
@@ -234,6 +255,8 @@ def train_smart_model(filepath: str = None):
         'scaler': scaler,
         'training_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'metrics': {'r2': best['r2'], 'rmse': best['rmse'], 'mae': best['mae']},
+        'training_time': best['training_time'],
+        'total_training_time': total_time,
     }
     with open(MODEL_FILE, 'wb') as f:
         pickle.dump(model_info, f)

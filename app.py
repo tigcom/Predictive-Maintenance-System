@@ -262,14 +262,26 @@ def train_model_route():
     if not file or file.filename == '':
         return 'No file uploaded', 400
 
+    selected_model = request.form.get('model', 'All')
+
     os.makedirs(DATASET_FOLDER, exist_ok=True)
     filepath = os.path.join(DATASET_FOLDER, secure_filename(file.filename))
     file.save(filepath)
 
     # Train synchronously (dataset is small enough)
     try:
+        # Get current active model before training
+        import pickle
+        from config import MODEL_FILE
+        current_model_info = None
+        try:
+            with open(MODEL_FILE, 'rb') as f:
+                current_model_info = pickle.load(f)
+        except:
+            current_model_info = None
+
         from models.trainer import train_smart_model
-        results, info = train_smart_model(filepath)
+        results, info = train_smart_model(filepath, selected_model=selected_model)
         # Reload the model in the running app
         load_model()
 
@@ -284,6 +296,7 @@ def train_model_route():
                 'r2': round(r['r2'], 4),
                 'rmse': round(r['rmse'], 1),
                 'mae': round(r['mae'], 1),
+                'training_time': round(r.get('training_time', 0), 2),
                 'is_best': name == info['model_name'],
             })
         model_results.sort(key=lambda x: x['r2'], reverse=True)
@@ -308,13 +321,21 @@ def train_model_route():
             'test_size': int(len(df_info) * 0.2),
         }
 
+        # Prepare current model info
+        previous_model_name = current_model_info.get('model_name', 'None') if current_model_info else 'None'
+        previous_model_metrics = current_model_info.get('metrics', {}) if current_model_info else {}
+
         return render_template('train_results.html',
                                models=model_results,
                                best_name=info['model_name'],
                                training_date=info['training_date'],
                                filename=secure_filename(file.filename),
                                feature_importance=feature_importance,
-                               dataset_info=dataset_info)
+                               dataset_info=dataset_info,
+                               training_time=info.get('training_time', 0),
+                               total_training_time=info.get('total_training_time', 0),
+                               previous_model_name=previous_model_name,
+                               previous_model_metrics=previous_model_metrics)
     except Exception as e:
         return f'Training error: {e}', 500
 

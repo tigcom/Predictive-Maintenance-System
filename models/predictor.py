@@ -4,8 +4,12 @@ predict_rul() function used everywhere in the app.
 """
 import pickle
 import numpy as np
+import warnings
 from datetime import datetime
 from config import MODEL_FILE, RUL_GOOD_THRESHOLD, RUL_WARNING_THRESHOLD, RUL_DEFAULT
+
+# Suppress sklearn feature names warnings
+warnings.filterwarnings('ignore', category=UserWarning, message='.*feature names.*')
 
 # --- Module-level model state ---
 _model = None
